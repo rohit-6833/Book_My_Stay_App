@@ -1,8 +1,26 @@
 import java.util.HashMap;
 import java.util.Map;
 
-class RoomInventory {
+class Room {
+    private String type;
+    private int beds;
+    private int sizeSqft;
+    private double pricePerNight;
 
+    public Room(String type, int beds, int sizeSqft, double pricePerNight) {
+        this.type = type;
+        this.beds = beds;
+        this.sizeSqft = sizeSqft;
+        this.pricePerNight = pricePerNight;
+    }
+
+    public String getDetails() {
+        return String.format("%-6s | Beds: %d | Size: %d sqft | Price: %.2f/night",
+                type, beds, sizeSqft, pricePerNight);
+    }
+}
+
+class RoomInventory {
     private Map<String, Integer> roomAvailability;
 
     public RoomInventory() {
@@ -11,9 +29,9 @@ class RoomInventory {
     }
 
     private void initializeInventory() {
-        roomAvailability.put("Single Room", 5);
-        roomAvailability.put("Double Room", 3);
-        roomAvailability.put("Suite Room", 2);
+        roomAvailability.put("Single", 5);
+        roomAvailability.put("Double", 3);
+        roomAvailability.put("Suite", 2);
     }
 
     public Map<String, Integer> getRoomAvailability() {
@@ -25,45 +43,57 @@ class RoomInventory {
     }
 }
 
+class RoomSearchService {
+
+    public void searchAvailableRooms(RoomInventory inventory, Room singleRoom, Room doubleRoom, Room suiteRoom) {
+        System.out.println("\nSearching Available Rooms");
+
+        // Retrieve availability data without modifying it
+        Map<String, Integer> availability = inventory.getRoomAvailability();
+
+        boolean foundAny = false;
+
+        if (availability.containsKey("Single") && availability.get("Single") > 0) {
+            System.out.println(singleRoom.getDetails() + " | Available: " + availability.get("Single"));
+            foundAny = true;
+        }
+
+        if (availability.containsKey("Double") && availability.get("Double") > 0) {
+            System.out.println(doubleRoom.getDetails() + " | Available: " + availability.get("Double"));
+            foundAny = true;
+        }
+
+        if (availability.containsKey("Suite") && availability.get("Suite") > 0) {
+            System.out.println(suiteRoom.getDetails() + " | Available: " + availability.get("Suite"));
+            foundAny = true;
+        }
+
+        if (!foundAny) {
+            System.out.println("Sorry, no rooms are currently available.");
+        }
+    }
+}
+
 public class BookMyStayApp {
     public static void main(String[] args) {
-        System.out.println("Book My Stay App");
+        System.out.println("Book My Stay App: Room Search & Availability");
 
         RoomInventory inventory = new RoomInventory();
 
-        String hotelInfo = """
-            Hotel Configuration Details:
-            - Single Room: beds=1, size=250sqft, price/night=1500
-            - Double Room: beds=2, size=400sqft, price/night=2500
-            - Suite Room:  beds=3, size=750sqft, price/night=5000
-            """;
-        System.out.println(hotelInfo);
+        Room singleRoom = new Room("Single", 1, 250, 1500.0);
+        Room doubleRoom = new Room("Double", 2, 400, 2500.0);
+        Room suiteRoom = new Room("Suite", 3, 750, 5000.0);
 
-        displayInventory(inventory);
+        RoomSearchService searchService = new RoomSearchService();
 
-        System.out.println(">> Guest books 2 Single Rooms...");
+        System.out.println(">> Guest performs an initial search:");
+        searchService.searchAvailableRooms(inventory, singleRoom, doubleRoom, suiteRoom);
 
-        int currentSingle = inventory.getRoomAvailability().get("Single Room");
-        inventory.updateAvailability("Single Room", currentSingle - 2);
+        System.out.println("\n>> Simulating booking... All Suite rooms and Double rooms get booked.");
+        inventory.updateAvailability("Suite", 0);
+        inventory.updateAvailability("Double", 0);
 
-        System.out.println(">> Guest books 1 Suite Room...");
-        int currentSuite = inventory.getRoomAvailability().get("Suite Room");
-        inventory.updateAvailability("Suite Room", currentSuite - 1);
-
-        System.out.println("\n>> Post-Booking Inventory State:");
-        displayInventory(inventory);
-
-        System.out.println(">> Admin manually overrides Double Room availability to 5...");
-        inventory.updateAvailability("Double Room", 5);
-
-        displayInventory(inventory);
-    }
-
-    private static void displayInventory(RoomInventory inventory) {
-        System.out.println("Current Availability Map");
-        Map<String, Integer> currentAvailability = inventory.getRoomAvailability();
-        for (Map.Entry<String, Integer> entry : currentAvailability.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue() + " available");
-        }
+        System.out.println("\n>> Guest performs another search:");
+        searchService.searchAvailableRooms(inventory, singleRoom, doubleRoom, suiteRoom);
     }
 }
